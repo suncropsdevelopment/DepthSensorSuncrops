@@ -2,7 +2,8 @@ import sys
 from PyQt5 import QtWidgets
 import pyqtgraph as pg
 from sensor_reader import SensorReader
-from plot_updater import PlotUpdater
+#from test import PlotUpdater
+from plot_updater_r import PlotUpdater
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -17,7 +18,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.plot_graph.showAxis('right')
         self.plot_graph.hideAxis('left')
-        self.plot_graph.showGrid(x=True,y=True)
+        #self.plot_graph.showGrid(x=True,y=True)
 
         self.plot_graph.invertY()
 
@@ -29,6 +30,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.sensor_reader = SensorReader()
         self.sensor_reader.new_depth_data.connect(self.plot_updater.update_plot)
+        # self.sensor_reader.new_temperature_data.connect(self.plot_updater.update_plot)
 
 
 if __name__ == "__main__":

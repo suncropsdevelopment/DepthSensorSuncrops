@@ -11,6 +11,8 @@ class PlotUpdater:
         self.time = []
         self.depth = []
 
+
+
         pen = pg.mkPen(color=(255,0,0))
         self.line = self.plot_graph.plot(
             self.time,
@@ -35,10 +37,18 @@ class PlotUpdater:
 
         self.plot_graph.addItem(self.muddy_fill)
 
+        self.vehicle_fill  =pg.FillBetweenItem(
+            self.line,
+            pg.PlotDataItem([0],[0]),
+            brush = pg.mkBrush(color='#52d8f8')
+        )
+
+        self.plot_graph.addItem(self.vehicle_fill)
+
 
         #Adding a fixed line
 
-        self.distance = 5
+        self.distance = 50
         self.fixed_line = pg.InfiniteLine(
             pos = -self.distance,
             angle=0,
@@ -47,17 +57,24 @@ class PlotUpdater:
 
         self.plot_graph.addItem(self.fixed_line)
 
+        self.zero_line = pg.InfiniteLine(
+            pos = 0,
+            angle= 0,
+            pen = pg.mkPen(color='d',width=2,style=QtCore.Qt.DashLine)
 
-        self.amplitude = 5  # Height of the wave
-        self.frequency = 0.1  # How often the wave oscillates
-        self.phase = 0
+        )
+
+        self.plot_graph.addItem(self.zero_line)
+
 
         #self.plot_graph.setXRange(-20, 0)
 
-    def update_plot(self,depth):
+    def update_plot(self,depth,temp):
         new_time = self.time[-1]+1 if self.time else 0
         self.time.append(new_time)
         self.depth.append(depth)
+
+        print(temp)
 
 
         # take 20 or more or less value at a time
@@ -81,6 +98,11 @@ class PlotUpdater:
         self.muddy_fill.setCurves(
             self.line,
             pg.PlotDataItem(self.time,[max_value_y]*len(self.time))
+        )
+
+        self.vehicle_fill.setCurves(
+            pg.PlotDataItem(self.time, [-self.distance] * len(self.time)),
+            pg.PlotDataItem(self.time,[0]*len(self.time))
         )
 
         self.plot_graph.setYRange(

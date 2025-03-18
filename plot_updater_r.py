@@ -1,7 +1,7 @@
+import sys
 import pyqtgraph as pg
-from PyQt5 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore, QtWidgets
 import numpy as np
-from scipy.interpolate import make_interp_spline  # For B-spline interpolation
 
 
 class PlotUpdater:
@@ -9,8 +9,9 @@ class PlotUpdater:
         self.plot_graph = plot_graph
         self.time = []
         self.depth = []
+        self.temperature = []
 
-        # Pen for the original data line
+        # Plot the initial line
         pen = pg.mkPen(color=(255, 0, 0))
         self.line = self.plot_graph.plot(
             self.time,
@@ -19,11 +20,7 @@ class PlotUpdater:
             pen=pen
         )
 
-        # Pen for the B-spline interpolated line
-        self.spline_pen = pg.mkPen(color=(0, 255, 0), width=2)
-        self.spline_line = self.plot_graph.plot([], [], pen=self.spline_pen, name='B-spline Interpolation')
-
-        # Water fill
+        # Add water fill
         self.water_fill = pg.FillBetweenItem(
             self.line,
             pg.PlotDataItem([0], [0]),
@@ -31,7 +28,7 @@ class PlotUpdater:
         )
         self.plot_graph.addItem(self.water_fill)
 
-        # Muddy fill
+        # Add muddy fill
         self.muddy_fill = pg.FillBetweenItem(
             self.line,
             pg.PlotDataItem([0], [0]),
@@ -39,8 +36,16 @@ class PlotUpdater:
         )
         self.plot_graph.addItem(self.muddy_fill)
 
-        # Fixed line
-        self.distance = 5
+        # Add vehicle fill
+        self.vehicle_fill = pg.FillBetweenItem(
+            self.line,
+            pg.PlotDataItem([0], [0]),
+            brush=pg.mkBrush(color='#52d8f8')
+        )
+        self.plot_graph.addItem(self.vehicle_fill)
+
+        # Add a fixed line
+        self.distance = 50
         self.fixed_line = pg.InfiniteLine(
             pos=-self.distance,
             angle=0,
@@ -48,40 +53,42 @@ class PlotUpdater:
         )
         self.plot_graph.addItem(self.fixed_line)
 
-        # Wave parameters
-        self.amplitude = 5  # Height of the wave
-        self.frequency = 0.1  # How often the wave oscillates
-        self.phase = 0
+        # Add a zero line
+        self.zero_line = pg.InfiniteLine(
+            pos=0,
+            angle=0,
+            pen=pg.mkPen(color='d', width=2, style=QtCore.Qt.DashLine)
+        )
+        self.plot_graph.addItem(self.zero_line)
 
-    def update_plot(self, depth):
+
+        self.text_label = pg.TextItem(anchor=(1, 1), color='#000000')
+        self.text_label.setFont(QtGui.QFont('Arial', 12))
+        self.plot_graph.addItem(self.text_label)
+
+
+    def update_plot(self, depth,temperature):
+        print(temperature)
         new_time = self.time[-1] + 1 if self.time else 0
         self.time.append(new_time)
         self.depth.append(depth)
+        self.temperature.append(temperature)
+
+        self.text_label.setPos(self.time[-1],-self.distance/2+5 )
+        self.text_label.setText(f"Depth : {self.depth[-1]}m\nTemp  : {self.temperature[-1]}{chr(176)}")
 
         # Keep only the last 20 data points
         if len(self.time) > 20:
             self.time = self.time[-20:]
             self.depth = self.depth[-20:]
 
-        # Update the original data line
+        # Update the line data
         self.line.setData(self.time, self.depth)
 
-        # Perform B-spline interpolation
-        if len(self.time) >= 4:  # Need at least 4 points for a cubic B-spline
-            # Create a B-spline interpolation
-            spline = make_interp_spline(self.time, self.depth, k=3)  # Cubic B-spline
-            # Generate finer time points for smooth curve
-            time_fine = np.linspace(min(self.time), max(self.time), num=100)
-            depth_fine = spline(time_fine)
-            # Update the B-spline line
-            self.spline_line.setData(time_fine, depth_fine)
-        else:
-            # If not enough points, clear the B-spline line
-            self.spline_line.setData([], [])
-
-        # Update fills
+        # Update the fill areas
         max_depth = max(self.depth) if self.depth else depth
         min_depth = min(self.depth) if self.depth else depth
+        padding = 5
         max_value_y = max_depth
 
         self.water_fill.setCurves(
@@ -90,12 +97,26 @@ class PlotUpdater:
         )
         self.muddy_fill.setCurves(
             self.line,
-            pg.PlotDataItem(self.time, [max_value_y] * len(self.time))
+            pg.PlotDataItem(self.time, [max_depth] * len(self.time))
+        )
+        self.vehicle_fill.setCurves(
+            pg.PlotDataItem(self.time, [-self.distance] * len(self.time)),
+            pg.PlotDataItem(self.time, [0] * len(self.time))
         )
 
-        # Set Y-axis range without padding
+        # Update the plot range
         self.plot_graph.setYRange(
-            min(min_depth, -self.distance),
-            max(max_value_y, 0),
-            padding=0  # Remove padding
+            min(min_depth,-self.distance),
+            max(max_value_y,0),
+            padding=0
         )
+        # self.plot_graph.setXRange(self.time[0], self.time[-1], padding=0)
+
+        # Update the text label
+        text_x_pos = self.time[-1]
+        text_y_pos = -self.distance / 2 + 5
+        self.text_label.setPos(text_x_pos, text_y_pos)
+        self.text_label.setText(f"Depth : {self.depth[-1]}m\n\nTemp  : {self.temperature[-1]}{chr(176)}C")
+
+        print(f"Label Position: x={text_x_pos}, y={text_y_pos}")
+

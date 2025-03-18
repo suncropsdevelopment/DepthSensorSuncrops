@@ -9,7 +9,7 @@ class SensorReader(QtCore.QObject):
         self.serial = serial.Serial(port,baudrate)
         self.timer  =QtCore.QTimer()
         self.timer.timeout.connect(self.read_sensor)
-        self.timer.start(500)
+        self.timer.start(1000)
 
     def read_sensor(self):
         if self.serial.in_waiting:
