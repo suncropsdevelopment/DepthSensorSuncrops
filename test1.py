@@ -45,7 +45,7 @@ class PlotUpdater:
         self.plot_graph.addItem(self.vehicle_fill)
 
         # Add a fixed line
-        self.distance = 0
+        self.distance = 50
         self.fixed_line = pg.InfiniteLine(
             pos=-self.distance,
             angle=0,
@@ -74,8 +74,8 @@ class PlotUpdater:
 
         self.static_depth_text.setText("Depth :")
         self.static_temp_text.setText("Temp      :")
-        self.static_depth_text.setPos(0, -self.distance / 2 + 5)  # Position of static depth text
-        self.static_temp_text.setPos(0, -self.distance / 2 + 5)  # Position of static temp text
+        #self.static_depth_text.setPos(0, -self.distance / 2 + 5)  # Position of static depth text
+        #self.static_temp_text.setPos(0, -self.distance / 2 + 5)  # Position of static temp text
         self.plot_graph.addItem(self.static_depth_text)
         self.plot_graph.addItem(self.static_temp_text)
 
@@ -101,11 +101,13 @@ class PlotUpdater:
         window_size = self.main_window.size()
         print(f"Window size: {window_size.width()} x {window_size.height()}")
 
+        data_end_point = 30
+
         # Keep only the last 20 data points
-        if len(self.time) > 20:
-            self.time = self.time[-20:]
-            self.depth = self.depth[-20:]
-            self.temperature = self.temperature[-20:]
+        if len(self.time) > data_end_point:
+            self.time = self.time[-data_end_point:]
+            self.depth = self.depth[-data_end_point:]
+            self.temperature = self.temperature[-data_end_point:]
 
         # Update the line data
         self.line.setData(self.time, self.depth)
@@ -136,12 +138,13 @@ class PlotUpdater:
             max(max_depth, 0),
             padding=0
         )
-        self.plot_graph.setXRange(self.time[-1] - 19, self.time[-1], padding=0)
+        self.plot_graph.setXRange(self.time[-1] - (data_end_point-1), self.time[-1], padding=0)
+        self.plot_graph.enableAutoRange(axis='x', enable=False)
 
         # Calculate the Static position
         static_text_x = self.time[0]
-        static_depth_text_y = -self.distance / 2 + 4
-        static_temp_text_y = -self.distance / 2 + 10
+        static_depth_text_y = (-self.distance / 2) + (self.distance/15)
+        static_temp_text_y = (-self.distance / 2) + (self.distance/5)
         self.static_depth_text.setPos(static_text_x, static_depth_text_y)
         self.static_temp_text.setPos(static_text_x, static_temp_text_y)
 
@@ -155,8 +158,8 @@ class PlotUpdater:
             dynamic_depth_text_x = static_text_x + 2.5  # Add some padding
             dynamic_temp_text_x = static_text_x + 2.5  # Add some padding
         else:
-            dynamic_depth_text_x = static_text_x + 1.2
-            dynamic_temp_text_x = static_text_x + 1.2
+            dynamic_depth_text_x = static_text_x + 1.5
+            dynamic_temp_text_x = static_text_x + 1.5
 
         dynamic_depth_text_y = static_depth_text_y
         dynamic_temp_text_y = static_temp_text_y
@@ -169,5 +172,5 @@ class PlotUpdater:
         # Update the dynamic values
         self.dynamic_depth_text.setPos(dynamic_depth_text_x, dynamic_depth_text_y)
         self.dynamic_temp_text.setPos(dynamic_temp_text_x, dynamic_temp_text_y)
-        self.dynamic_depth_text.setText(f"{self.depth[-1]} m")
+        self.dynamic_depth_text.setText(f"{self.depth[-1]}m")
         self.dynamic_temp_text.setText(f"{self.temperature[-1]}{chr(176)}C")

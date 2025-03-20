@@ -16,7 +16,6 @@ class PlotUpdater:
         self.line = self.plot_graph.plot(
             self.time,
             self.depth,
-            name='Depth Sensor',
             pen=pen
         )
 
@@ -76,6 +75,8 @@ class PlotUpdater:
 
         self.text_label.setPos(self.time[-1],-self.distance/2+5 )
         self.text_label.setText(f"Depth : {self.depth[-1]}m\nTemp  : {self.temperature[-1]}{chr(176)}")
+        self.text_label.setText("Depth:\n")
+        self.text_label.setText("Temp :")
 
         # Keep only the last 20 data points
         if len(self.time) > 20:
@@ -110,13 +111,12 @@ class PlotUpdater:
             max(max_value_y,0),
             padding=0
         )
-        # self.plot_graph.setXRange(self.time[0], self.time[-1], padding=0)
+        self.plot_graph.setXRange(self.time[-1]-20, self.time[-1], padding=0)
 
         # Update the text label
         text_x_pos = self.time[-1]
         text_y_pos = -self.distance / 2 + 5
         self.text_label.setPos(text_x_pos, text_y_pos)
         self.text_label.setText(f"Depth : {self.depth[-1]}m\n\nTemp  : {self.temperature[-1]}{chr(176)}C")
-
         print(f"Label Position: x={text_x_pos}, y={text_y_pos}")
 

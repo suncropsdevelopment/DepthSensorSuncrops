@@ -1,13 +1,14 @@
 import sys
 from PyQt5 import QtWidgets
 import pyqtgraph as pg
-from sensor_reader import SensorReader
-#from test import PlotUpdater
-from plot_updater_r import PlotUpdater
+from sensor_reader_com import SensorReader
+from test1 import PlotUpdater
+#from plot_updater_r import PlotUpdater
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
+        self.showMaximized()
         self.plot_graph = pg.PlotWidget()
         self.setCentralWidget(self.plot_graph)
         self.plot_graph.setBackground('black')
@@ -24,12 +25,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.plot_graph.addLegend()
 
+        self.plot_updater = PlotUpdater(self.plot_graph,self)
 
-
-        self.plot_updater = PlotUpdater(self.plot_graph)
-
-        self.sensor_reader = SensorReader()
-        self.sensor_reader.new_depth_data.connect(self.plot_updater.update_plot)
+        self.sensor_reader = SensorReader("COM1",9600)
+        self.sensor_reader.new_sensor_data.connect(self.plot_updater.update_plot)
         # self.sensor_reader.new_temperature_data.connect(self.plot_updater.update_plot)
 
 
