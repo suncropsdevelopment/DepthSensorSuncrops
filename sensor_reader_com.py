@@ -21,16 +21,16 @@ class SensorReader(QtCore.QObject):
                     depth = float(data[3])
                     print(f"Depth: {depth}")
 
-                    # Extract temperature and remove any checksum or extra characters
-                    temperature_str = data[7].split('*')[0]  # Remove checksum if present
+                    # Extracting temperature and remove any checksum or extra characters
+                    temperature_str = data[7].split('*')[0]
                     temperature = float(temperature_str)
                     print(f"Temperature: {temperature}")
 
-                    # Emit the depth and temperature as separate values
+                    # Send depth and temperature as separate values
                     self.new_sensor_data.emit(depth, temperature)
                 else:
-                    print(f"Ignoring non-SDDBT data: {data}")
+                    print(f"Received: {data}")
             except ValueError as ve:
-                print(f"Invalid Sensor Data: Unable to parse depth or temperature. Error: {ve}")
+                print(ve)
             except Exception as e:
-                print(f"Error reading sensor data: {e}")
+                print(e)
